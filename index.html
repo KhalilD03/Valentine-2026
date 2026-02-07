@@ -15,6 +15,9 @@
       --card: #ffffffcc;
       --yes: #ff3b7a;
       --yesHover: #ff1f68;
+      --heart-color1: #ff3b7a;
+      --heart-color2: #ff7aa2;
+      --heart-color3: #ffb8d0;
     }
 
     * { box-sizing: border-box; }
@@ -55,6 +58,24 @@
       margin: 0 auto 10px;
       display: block;
       filter: drop-shadow(0 10px 14px rgba(0,0,0,.12));
+    }
+    
+    .photo-container {
+      position: relative;
+      width: min(260px, 80vw);
+      margin: 0 auto 10px;
+      overflow: hidden;
+    }
+    
+    .photo-container img {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease;
+    }
+    
+    .photo-container img:hover {
+      transform: scale(1.02);
     }
 
     h1 {
@@ -115,61 +136,140 @@
       font-size: clamp(30px, 4.5vw, 46px);
       margin: 10px 0;
     }
+    
+    .music-control {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background-color: var(--card);
+      border: 2px solid var(--yes);
+      color: var(--yes);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 1000;
+    }
+    
+    .music-control.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
 
     .fireworks {
       width: min(380px, 90vw);
       margin: 0 auto;
       display: block;
     }
-
+    
     @keyframes pop {
       from { transform: scale(.96); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
+    
+    /* FLOATING HEARTS */
+    .hearts-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0; /* Increased from -1 to 0 to make more visible */
+    }
+    
+    .heart {
+      position: absolute;
+      bottom: -10%; /* Ensure hearts start below the screen */
+      opacity: 0;
+      animation: float-up linear forwards;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); /* Add glow effect */
+    }
+    
+    @keyframes float-up {
+      0% {
+        transform: translateY(0) scale(0.4) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.9; /* Increased opacity */
+      }
+      90% {
+        opacity: 0.8; /* Increased opacity */
+      }
+      100% {
+        transform: translateY(-120vh) scale(1) rotate(20deg);
+        opacity: 0;
+      }
+    }
+    
+    /* Ehh im not 100% sure if I want to keep this yet */
+    /* EXPLODING HEARTS */
+    .exploding-heart {
+      position: fixed;
+      z-index: 999;
+      pointer-events: none;
+      animation: explode-heart forwards;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    }
+    
+    @keyframes explode-heart {
+      0% {
+        transform: scale(0.1) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 0.9;
+      }
+      100% {
+        transform: translate(var(--x-distance), var(--y-distance)) scale(1.2) rotate(20deg);
+        opacity: 0;
+      }
+    }
+
+    /* END Ehh im not 100% sure if I want to keep this yet */
   </style>
 </head>
 
 <body>
   <canvas id="confettiCanvas"></canvas>
+  <div class="hearts-container" id="heartsContainer"></div>
+  
+  <!-- Audio element (hidden) - Replace the src with her favorite song -->
+  <audio id="valentineMusic" preload="auto" loop autoplay muted>
+    <!-- Change the src attribute below to your song file name -->
+    <source src="music/favorite_song.mp3" type="audio/mpeg">
+    <source src="music/favorite_song.m4a" type="audio/mp4">
+    <source src="music/favorite_song.ogg" type="audio/ogg">
+    <!-- You can delete the formats you don't need -->
+    Your browser does not support the audio element.
+  </audio>
+  
+  <!-- Hidden iframe for Safari autoplay workaround -->
+  <iframe src="music/silent.mp3" allow="autoplay" id="audio-workaround" style="display:none"></iframe>
+  
+  <!-- Music control button (visible from start) -->
+  <div class="music-control visible" id="musicControl">
+    <span id="musicIcon">♫</span>
+  </div>
 
   <main class="card">
-    <!-- ANIMAL WITH HEART -->
-    <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="fur" x1="0" x2="1">
-          <stop offset="0" stop-color="#f7c7a1"/>
-          <stop offset="1" stop-color="#f2a97b"/>
-        </linearGradient>
-        <linearGradient id="heart" x1="0" x2="1">
-          <stop offset="0" stop-color="#ff4d7d"/>
-          <stop offset="1" stop-color="#ff1f68"/>
-        </linearGradient>
-      </defs>
-
-      <path d="M250 50 C250 33 270 25 282 38
-               C294 25 314 33 314 50
-               C314 78 282 92 282 106
-               C282 92 250 78 250 50Z"
-            fill="url(#heart)"/>
-
-      <path d="M90 120 C90 70 140 40 190 60
-               C240 40 290 70 290 120
-               C290 180 240 210 190 210
-               C140 210 90 180 90 120Z"
-            fill="url(#fur)"/>
-
-      <path d="M110 92 L95 55 L140 78 Z" fill="#f2a97b"/>
-      <path d="M270 92 L285 55 L240 78 Z" fill="#f2a97b"/>
-
-      <circle cx="160" cy="130" r="8"/>
-      <circle cx="220" cy="130" r="8"/>
-
-      <path d="M190 144 C186 144 182 148 182 152
-               C182 160 190 164 190 170
-               C190 164 198 160 198 152
-               C198 148 194 144 190 144Z"
-            fill="#ff7aa2"/>
-    </svg>
+    <!-- PERSONAL PHOTO -->
+    <div class="photo-container">
+      <!-- Using the user's photo -->
+      <img class="art" src="images/IMG_3706.JPG" alt="Valentine's Photo" />
+    </div>
 
     <h1>Taylor will you be my valentine?</h1>
 
@@ -179,16 +279,18 @@
     </section>
 
     <!-- HINT -->
-    <div class="hint" id="hint">“No” seems a bit shy 😈</div>
+    <div class="hint" id="hint">PRESS SPACEBAR! and dont even think about clicking no...</div>
 
     <section class="result" id="result">
-      <h2>YAY! 🎉</h2>
+      <h2>AYE! BAE I LOVE YOUUUU, YOU MY EVERYTHING❤️</h2>
       <img
         class="fireworks"
-        src="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif"
-        alt="Fireworks"
+        src="https://media.giphy.com/media/12WhkSmwGOGIUM/giphy.gif"
+        alt="Dancing Celebration"
       />
     </section>
+    
+    <!-- Music control removed from here, now at the body level -->
   </main>
 
   <script>
@@ -197,6 +299,11 @@
     const noBtn = document.getElementById("noBtn");
     const result = document.getElementById("result");
     const hint = document.getElementById("hint");
+    const heartsContainer = document.getElementById("heartsContainer");
+    const heading = document.querySelector("h1"); // Get the heading element
+    const valentineMusic = document.getElementById("valentineMusic"); // Get the audio element
+    const musicControl = document.getElementById("musicControl"); // Music control button
+    const musicIcon = document.getElementById("musicIcon"); // Music icon
 
     /* ---------- CONFETTI ---------- */
     const confettiCanvas = document.getElementById("confettiCanvas");
@@ -289,14 +396,187 @@
 
     noBtn.addEventListener("click", e => e.preventDefault());
 
+    /* ---------- EXPLODING HEARTS ANIMATION ---------- */
+    function createExplodingHeart(x, y) {
+      const heart = document.createElement('div');
+      heart.classList.add('exploding-heart');
+      
+      // Random size between 20px and 50px
+      const size = Math.floor(Math.random() * 30) + 20;
+      heart.style.width = `${size}px`;
+      heart.style.height = `${size}px`;
+      
+      // Position at click point
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      
+      // Random color
+      const colors = ['--heart-color1', '--heart-color2', '--heart-color3'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      // Random animation duration between 0.8s and 1.5s
+      const duration = (Math.random() * 0.7 + 0.8).toFixed(2);
+      heart.style.animationDuration = `${duration}s`;
+      
+      // Random direction using angle and distance
+      const angle = Math.random() * Math.PI * 2; // Random angle in radians
+      const distance = 30 + Math.random() * 80; // Random distance
+      
+      // Calculate x and y distances using trigonometry
+      const xDistance = Math.cos(angle) * distance;
+      const yDistance = Math.sin(angle) * distance;
+      
+      heart.style.setProperty('--x-distance', `${xDistance}px`);
+      heart.style.setProperty('--y-distance', `${yDistance}px`);
+      
+      // Create SVG heart
+      heart.innerHTML = `
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 57.6c-1.2 0-2.4-.4-3.4-1.2C17.8 48.5 0 33.4 0 19.1 0 8.6 8.6 0 19.1 0c4.4 0 8.6 1.5 12 4.3 1.2 1 2.9 1 4.1 0 3.3-2.8 7.5-4.3 11.9-4.3C57.4 0 66 8.6 66 19.1c0 14.3-17.8 29.4-28.6 37.3-1 .8-2.2 1.2-3.4 1.2z" 
+                fill="var(${color})" opacity="0.9" />
+        </svg>
+      `;
+      
+      document.body.appendChild(heart);
+      
+      // Remove heart after animation completes
+      setTimeout(() => {
+        heart.remove();
+      }, parseFloat(duration) * 1000);
+    }
+    
+    function explodeHearts(x, y) {
+      // Create many hearts in a short period
+      for (let i = 0; i < 40; i++) {
+        setTimeout(() => {
+          createExplodingHeart(x, y);
+        }, i * 20); // Stagger the creation
+      }
+    }
+    
     /* ---------- YES CLICK ---------- */
-    yesBtn.addEventListener("click", () => {
-      zone.style.display = "none";
-      hint.style.display = "none";     // HIDE THE HINT
-      result.style.display = "block";
-      resizeConfettiCanvas();
-      fullScreenConfetti();
+    yesBtn.addEventListener("click", (e) => {
+      // Get button position for heart explosion
+      const rect = yesBtn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      
+      // Explode hearts from the button
+      explodeHearts(x, y);
+      
+      // Short delay before showing result
+      setTimeout(() => {
+        zone.style.display = "none";
+        hint.style.display = "none";     // HIDE THE HINT
+        heading.style.display = "none"; // HIDE THE HEADING
+        result.style.display = "block";
+        resizeConfettiCanvas();
+        fullScreenConfetti();
+        
+        // Music is already playing from page load
+        // No need to play it again here
+      }, 600);
     });
+    
+    /* ---------- FLOATING HEARTS BACKGROUND ---------- */
+    function createHeart() {
+      const heart = document.createElement('div');
+      heart.classList.add('heart');
+      
+      // Random size between 30px and 80px (increased size)
+      const size = Math.floor(Math.random() * 50) + 30;
+      heart.style.width = `${size}px`;
+      heart.style.height = `${size}px`;
+      
+      // Random horizontal position
+      const left = Math.floor(Math.random() * 100);
+      heart.style.left = `${left}%`;
+      
+      // Random color
+      const colors = ['--heart-color1', '--heart-color2', '--heart-color3'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      // Random animation duration between 8s and 15s (faster)
+      const duration = Math.floor(Math.random() * 7) + 8;
+      heart.style.animationDuration = `${duration}s`;
+      
+      // Create SVG heart with higher opacity
+      heart.innerHTML = `
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 57.6c-1.2 0-2.4-.4-3.4-1.2C17.8 48.5 0 33.4 0 19.1 0 8.6 8.6 0 19.1 0c4.4 0 8.6 1.5 12 4.3 1.2 1 2.9 1 4.1 0 3.3-2.8 7.5-4.3 11.9-4.3C57.4 0 66 8.6 66 19.1c0 14.3-17.8 29.4-28.6 37.3-1 .8-2.2 1.2-3.4 1.2z" 
+                fill="var(${color})" opacity="0.9" />
+        </svg>
+      `;
+      
+      heartsContainer.appendChild(heart);
+      
+      // Remove heart after animation completes
+      setTimeout(() => {
+        heart.remove();
+      }, duration * 1000);
+    }
+    
+    // Create hearts at random intervals
+    function startHeartAnimation() {
+      // Create initial hearts - more initial hearts (20 instead of 10)
+      for (let i = 0; i < 20; i++) {
+        setTimeout(createHeart, i * 200);
+      }
+      
+      // Continue creating hearts at more frequent intervals (400ms instead of 800ms)
+      setInterval(() => {
+        createHeart();
+      }, 400);
+    }
+    
+    // Start the heart animation and try multiple methods to play music when page loads
+    window.addEventListener('load', () => {
+      startHeartAnimation();
+      
+      // Try to play music automatically with multiple methods
+      valentineMusic.volume = 0.7; // Set volume to 70%
+      
+      // Method 1: Standard play attempt
+      valentineMusic.play().catch(() => {
+        console.log('Standard autoplay prevented, trying alternative methods');
+        
+        // Method 2: Try playing on first user interaction with the page
+        const playOnInteraction = () => {
+          // Unmute and play
+          valentineMusic.muted = false;
+          valentineMusic.play().then(() => {
+            // Remove event listeners once played successfully
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
+            document.removeEventListener('keydown', playOnInteraction);
+          }).catch(e => console.log('Still could not play audio'));
+        };
+        
+        // Add event listeners for common user interactions
+        document.addEventListener('click', playOnInteraction, { once: true });
+        document.addEventListener('touchstart', playOnInteraction, { once: true });
+        document.addEventListener('keydown', playOnInteraction, { once: true });
+      });
+    });
+    
+    // Music control toggle
+    musicControl.addEventListener('click', () => {
+      if (valentineMusic.paused) {
+        valentineMusic.muted = false; // Ensure it's unmuted
+        valentineMusic.play();
+        musicIcon.textContent = '♫';
+      } else {
+        valentineMusic.pause();
+        musicIcon.textContent = '♪';
+      }
+    });
+    
+    // Create an extra batch of hearts every few seconds for even more hearts
+    setInterval(() => {
+      for (let i = 0; i < 5; i++) {
+        setTimeout(createHeart, i * 100);
+      }
+    }, 3000);
   </script>
 </body>
 </html>
